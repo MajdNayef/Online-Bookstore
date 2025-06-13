@@ -1,18 +1,20 @@
 pipeline {
     agent any
+
     environment {
+        // Make sure this matches the Name you set in Manage Jenkins → Configure System → Jira
         JIRA_SITE = 'jira-rest-api'
     }
+
     stages {
-        stage('Create Jira Issue') {
+        stage('Update Jira Issue') {
             steps {
                 script {
-                    jiraNewIssue(
-            site:        env.JIRA_SITE,
-            projectKey:  'DB',
-            issueType:   'Task',
-            summary:     "Automated Issue from Build #${env.BUILD_NUMBER}",
-            description: "Created by Jenkins. Build URL: ${env.BUILD_URL}"
+                    // This is the snippet you generated, with the 'site' added
+                    jiraComment(
+            site:     env.JIRA_SITE,
+            issueKey: 'DB-8',          // the issue you want to update
+            body:     'Test 1'         // your comment text
           )
                 }
             }
