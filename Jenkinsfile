@@ -47,18 +47,18 @@ pipeline {
     // }
 
     stage('Transition to Done') {
-      steps {
-        script {
-          // again: idOrKey, plus a 'transition' map
-          jiraTransitionIssue(
-            site:       env.JIRA_SITE,
-            idOrKey:    ISSUE_KEY,
-            transition: [ name: 'Done' ]              // must match your workflow
-          )
-          echo "➡️ Transitioned ${ISSUE_KEY} to Done"
-        }
-      }
+  steps {
+    script {
+      jiraTransitionIssue(
+        site:    env.JIRA_SITE,
+        idOrKey: ISSUE_KEY,
+        input:   [ transition: [ name: 'Done' ] ]
+      )
+      echo "➡️ Transitioned ${ISSUE_KEY} to Done"
     }
+  }
+}
+
 
   } // stages
 
