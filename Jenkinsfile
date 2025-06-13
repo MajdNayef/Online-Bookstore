@@ -1,28 +1,33 @@
+// define a Groovy variable at the top level to share between stages
+def ISSUE_KEY = 'DP-88'
+
 pipeline {
   agent any
 
   environment {
-    JIRA_SITE = 'jira-rest-api'   // your configured site name
+    // name of your Jira site as configured in Manage Jenkins → Configure System → Jira sites
+    JIRA_SITE = 'jira-rest-api'
   }
 
   stages {
     stage('Create Jira Issue') {
       steps {
         script {
-          // Create the issue, no credentialsId param here
-          def newIssue = jiraNewIssue(
+          // call jiraNewIssue and capture the full response
+          def response = jiraNewIssue(
             site: env.JIRA_SITE,
             issue: [
               fields: [
-                project:    [ key: 'DP' ],               // <-- use DP, not DB
-                summary:    "Automated task for Build #${env.BUILD_NUMBER}",
-                description:"Jenkins build URL: ${env.BUILD_URL}",
-                issuetype:  [ name: 'Task' ]
+                project:     [ key: 'DP' ],
+                summary:     "Automated task for Build #${env.BUILD_NUMBER}",
+                description: "Build URL: ${env.BUILD_URL}",
+                issuetype:   [ name: 'Task' ]
               ]
             ]
           )
-          env.ISSUE_KEY = newIssue.key
-          echo "Created Jira issue ${env.ISSUE_KEY}"
+          // drill into response.issue.key — not response.key
+          ISSUE_KEY = response.issue.key
+          echo "✅ Created issue ${ISSUE_KEY}"
         }
       }
     }
@@ -32,9 +37,10 @@ pipeline {
     //     script {
     //       jiraAddComment(
     //         site:      env.JIRA_SITE,
-    //         issueKey:  env.ISSUE_KEY,
-    //         comment:   "✅ Build #${env.BUILD_NUMBER} succeeded: ${env.BUILD_URL}"
+    //         issueKey:  ISSUE_KEY,
+    //         comment:   "Build #${env.BUILD_NUMBER} succeeded: ${env.BUILD_URL}"
     //       )
+    //       echo "📝 Comment added to ${ISSUE_KEY}"
     //     }
     //   }
     // }
@@ -44,9 +50,10 @@ pipeline {
     //     script {
     //       jiraTransitionIssue(
     //         site:       env.JIRA_SITE,
-    //         issueKey:   env.ISSUE_KEY,
-    //         transition: [ name: 'Done' ]            // match your Jira workflow transition
+    //         issueKey:   ISSUE_KEY,
+    //         transition: [ name: 'Done' ]
     //       )
+    //       echo "➡️ Transitioned ${ISSUE_KEY} to Done"
     //     }
     //   }
     // }
@@ -55,12 +62,13 @@ pipeline {
   post {
     failure {
       script {
-        if (env.ISSUE_KEY) {
+        if (ISSUE_KEY) {
           jiraAddComment(
             site:      env.JIRA_SITE,
-            issueKey:  env.ISSUE_KEY,
+            issueKey:  ISSUE_KEY,
             comment:   "⚠️ Build #${env.BUILD_NUMBER} FAILED: ${env.BUILD_URL}"
           )
+          echo "❗ Failure comment added to ${ISSUE_KEY}"
         }
       }
     }
