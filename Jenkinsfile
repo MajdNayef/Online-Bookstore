@@ -10,6 +10,23 @@ pipeline {
   }
 
   stages {
+    stage('List Jira Transitions') {
+  steps {
+    script {
+      // call the plugin step that returns available transitions
+      def resp = jiraGetIssueTransitions(
+        site:    env.JIRA_SITE,
+        idOrKey: ISSUE_KEY
+      )
+      // The transitions usually live under resp.data.transitions
+      resp.data.transitions.each { t ->
+        echo "→ ${t.id} : ${t.name}"
+      }
+    }
+  }
+}
+
+
     // stage('Create Jira Issue') {
     //   steps {
     //     script {
@@ -46,18 +63,18 @@ pipeline {
     //   }
     // }
 
-    stage('Transition to Done') {
-  steps {
-    script {
-      jiraTransitionIssue(
-        site:    env.JIRA_SITE,
-        idOrKey: ISSUE_KEY,
-        input:   [ transition: [ name: 'Done' ] ]
-      )
-      echo "➡️ Transitioned ${ISSUE_KEY} to Done"
-    }
-  }
-}
+//     stage('Transition to Done') {
+//   steps {
+//     script {
+//       jiraTransitionIssue(
+//         site:    env.JIRA_SITE,
+//         idOrKey: ISSUE_KEY,
+//         input:   [ transition: [ name: 'Done' ] ]
+//       )
+//       echo "➡️ Transitioned ${ISSUE_KEY} to Done"
+//     }
+//   }
+// }
 
 
   } // stages
