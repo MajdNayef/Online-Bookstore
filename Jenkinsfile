@@ -1,5 +1,5 @@
 // declare this up here so all stages can see it
-def ISSUE_KEY = ''
+def ISSUE_KEY = 'DP-7'
 
 pipeline {
   agent any
