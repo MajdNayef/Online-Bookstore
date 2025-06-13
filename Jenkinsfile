@@ -13,7 +13,7 @@ pipeline {
                     // This is the snippet you generated, with the 'site' added
                     jiraComment(
             site:     env.JIRA_SITE,
-            issueKey: 'DB-8',          // the issue you want to update
+            issueKey: 'DB-7',          // the issue you want to update
             body:     'Test 1'         // your comment text
           )
                 }
