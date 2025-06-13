@@ -1,68 +1,76 @@
-// you can name this whatever, but defining it here lets us share it across stages
-def ISSUE_KEY = 'DB-9'
-
 pipeline {
-    agent any
+  agent any
 
-    environment {
-        // must match the "Name" you gave in Manage Jenkins → Configure System → Jira
-        JIRA_SITE = 'jira-rest-api'
-    }
+  environment {
+    // These must match your Jenkins config
+    JIRA_SITE       = 'jira-rest-api'
+    JIRA_CRED_ID    = 'jira-creds'
+  }
 
-    stages {
-        stage('Create Jira Issue') {
-            steps {
-                script {
-                    // this returns the new issue key, e.g. "DB-10"
-                    ISSUE_KEY = jiraNewIssue(
-            site:        env.JIRA_SITE,
-            projectKey:  'DB',             // your Jira project key
-            issueType:   'Task',           // e.g. Task, Bug, Story…
-            summary:     "Automated Issue for Build #${env.BUILD_NUMBER}",
-            description: "This issue was created automatically by Jenkins.\nBuild URL: ${env.BUILD_URL}"
+  stages {
+    stage('Create Jira Issue') {
+      steps {
+        script {
+          // Create a new issue and capture the key (e.g. "DB-10")
+          def newIssue = jiraNewIssue(
+            site:           env.JIRA_SITE,
+            credentialsId:  env.JIRA_CRED_ID,
+            issue: [
+              fields: [
+                project:   [ key: 'DB' ],                 // your project key
+                summary:   "Automated task for Build #${env.BUILD_NUMBER}",
+                description: "Jenkins build URL: ${env.BUILD_URL}",
+                issuetype: [ name: 'Task' ]               // or Bug, Story, etc.
+              ]
+            ]
           )
-                    echo "👍 Created Jira issue ${ISSUE_KEY}"
-                }
-            }
+          // Expose it to later stages
+          env.ISSUE_KEY = newIssue.key
+          echo "🆕 Created Jira issue ${env.ISSUE_KEY}"
         }
-
-//         stage('Add Success Comment') {
-//             steps {
-//                 script {
-//                     jiraAddComment(
-//             site:     env.JIRA_SITE,
-//             issueKey: ISSUE_KEY,
-//             comment:  "✅ Build #${env.BUILD_NUMBER} succeeded: ${env.BUILD_URL}"
-//           )
-//                 }
-//             }
-//         }
-
-//         stage('Transition Issue to Done') {
-//             steps {
-//                 script {
-//                     jiraTransitionIssue(
-//             site:       env.JIRA_SITE,
-//             issueKey:   ISSUE_KEY,
-//             transition: 'Done'             // must match exactly a transition name in your workflow
-//           )
-//                 }
-//             }
-//         }
-//   } // stages
-
-//     post {
-//         failure {
-//             script {
-//                 // if something goes wrong, leave a failure comment
-//                 if (ISSUE_KEY) {
-//                     jiraAddComment(
-//             site:     env.JIRA_SITE,
-//             issueKey: ISSUE_KEY,
-//             comment:  "⚠️ Build #${env.BUILD_NUMBER} FAILED: ${env.BUILD_URL}"
-//           )
-//                 }
-//             }
-        // }
+      }
     }
+
+    // stage('Add Success Comment') {
+    //   steps {
+    //     script {
+    //       jiraAddComment(
+    //         site:           env.JIRA_SITE,
+    //         credentialsId:  env.JIRA_CRED_ID,
+    //         issueKey:       env.ISSUE_KEY,
+    //         comment:        "✅ Build #${env.BUILD_NUMBER} succeeded: ${env.BUILD_URL}"
+    //       )
+    //     }
+    //   }
+    // }
+
+    // stage('Transition to Done') {
+    //   steps {
+    //     script {
+    //       jiraTransitionIssue(
+    //         site:           env.JIRA_SITE,
+    //         credentialsId:  env.JIRA_CRED_ID,
+    //         issueKey:       env.ISSUE_KEY,
+    //         // You can also use transition: [id: '31'] if your workflow IDs differ
+    //         transition:     [ name: 'Done' ]  
+    //       )
+    //     }
+    //   }
+    // }
+  } // stages
+
+//   post {
+//     failure {
+//       script {
+//         if (env.ISSUE_KEY) {
+//           jiraAddComment(
+//             site:           env.JIRA_SITE,
+//             credentialsId:  env.JIRA_CRED_ID,
+//             issueKey:       env.ISSUE_KEY,
+//             comment:        "⚠️ Build #${env.BUILD_NUMBER} FAILED: ${env.BUILD_URL}"
+//           )
+//         }
+//       }
+//     }
+//   }
 }
