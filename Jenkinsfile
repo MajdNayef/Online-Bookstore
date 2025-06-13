@@ -2,31 +2,27 @@ pipeline {
   agent any
 
   environment {
-    // These must match your Jenkins config
-    JIRA_SITE       = 'jira-rest-api'
-    JIRA_CRED_ID    = 'jira-creds'
+    JIRA_SITE = 'jira-rest-api'   // your configured site name
   }
 
   stages {
     stage('Create Jira Issue') {
       steps {
         script {
-          // Create a new issue and capture the key (e.g. "DB-10")
+          // Create the issue, no credentialsId param here
           def newIssue = jiraNewIssue(
-            site:           env.JIRA_SITE,
-            credentialsId:  env.JIRA_CRED_ID,
+            site: env.JIRA_SITE,
             issue: [
               fields: [
-                project:   [ key: 'DB' ],                 // your project key
-                summary:   "Automated task for Build #${env.BUILD_NUMBER}",
-                description: "Jenkins build URL: ${env.BUILD_URL}",
-                issuetype: [ name: 'Task' ]               // or Bug, Story, etc.
+                project:    [ key: 'DP' ],               // <-- use DP, not DB
+                summary:    "Automated task for Build #${env.BUILD_NUMBER}",
+                description:"Jenkins build URL: ${env.BUILD_URL}",
+                issuetype:  [ name: 'Task' ]
               ]
             ]
           )
-          // Expose it to later stages
           env.ISSUE_KEY = newIssue.key
-          echo "🆕 Created Jira issue ${env.ISSUE_KEY}"
+          echo "Created Jira issue ${env.ISSUE_KEY}"
         }
       }
     }
@@ -35,10 +31,9 @@ pipeline {
     //   steps {
     //     script {
     //       jiraAddComment(
-    //         site:           env.JIRA_SITE,
-    //         credentialsId:  env.JIRA_CRED_ID,
-    //         issueKey:       env.ISSUE_KEY,
-    //         comment:        "✅ Build #${env.BUILD_NUMBER} succeeded: ${env.BUILD_URL}"
+    //         site:      env.JIRA_SITE,
+    //         issueKey:  env.ISSUE_KEY,
+    //         comment:   "✅ Build #${env.BUILD_NUMBER} succeeded: ${env.BUILD_URL}"
     //       )
     //     }
     //   }
@@ -48,29 +43,26 @@ pipeline {
     //   steps {
     //     script {
     //       jiraTransitionIssue(
-    //         site:           env.JIRA_SITE,
-    //         credentialsId:  env.JIRA_CRED_ID,
-    //         issueKey:       env.ISSUE_KEY,
-    //         // You can also use transition: [id: '31'] if your workflow IDs differ
-    //         transition:     [ name: 'Done' ]  
+    //         site:       env.JIRA_SITE,
+    //         issueKey:   env.ISSUE_KEY,
+    //         transition: [ name: 'Done' ]            // match your Jira workflow transition
     //       )
     //     }
     //   }
     // }
-  } // stages
+  }
 
-//   post {
-//     failure {
-//       script {
-//         if (env.ISSUE_KEY) {
-//           jiraAddComment(
-//             site:           env.JIRA_SITE,
-//             credentialsId:  env.JIRA_CRED_ID,
-//             issueKey:       env.ISSUE_KEY,
-//             comment:        "⚠️ Build #${env.BUILD_NUMBER} FAILED: ${env.BUILD_URL}"
-//           )
-//         }
-//       }
-//     }
-//   }
+  post {
+    failure {
+      script {
+        if (env.ISSUE_KEY) {
+          jiraAddComment(
+            site:      env.JIRA_SITE,
+            issueKey:  env.ISSUE_KEY,
+            comment:   "⚠️ Build #${env.BUILD_NUMBER} FAILED: ${env.BUILD_URL}"
+          )
+        }
+      }
+    }
+  }
 }
