@@ -77,18 +77,24 @@ pipeline {
 
      stage('Build & Push Docker Image') {
       steps {
-        script {
-          // 1) Build the image
-          def image = docker.build("majdyoussef/online-bookstore:${env.BUILD_NUMBER}")
+    script {
+      // Build the image
+      bat "docker build -t majdyoussef/online-bookstore:${env.BUILD_NUMBER} ."
+      
+      // Log in to Docker Hub
+      withCredentials([usernamePassword(
+        credentialsId: 'docker-hub',
+        usernameVariable: 'DOCKER_USER',
+        passwordVariable: 'DOCKER_PASS'
+      )]) {
+        bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
 
-          // 2) Push it to Docker Hub
-          docker.withRegistry('https://registry.hub.docker.com', 'docker-hub') {
-            image.push('latest')                   // tag “latest”
-            image.push("${env.BUILD_NUMBER}")      // also push with build-number tag
-          }
-
-          echo "📦 Pushed image your-docker-user/online-bookstore:${env.BUILD_NUMBER} and :latest"
-        }
+        // Tag the image as latest and push both tags
+        bat "docker tag majdyoussef/online-bookstore:${env.BUILD_NUMBER} majdyoussef/online-bookstore:latest"
+        bat "docker push majdyoussef/online-bookstore:${env.BUILD_NUMBER}"
+        bat "docker push majdyoussef/online-bookstore:latest"
+      }
+    }
       }
     }
   }
