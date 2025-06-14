@@ -12,9 +12,7 @@
     "start:frontend": "npm --prefix frontend run dev"
   },
   "dependencies": {
-    "book-store-project": "file:"
-  },
-  "devDependencies": {
+    "book-store-project": "file:",
     "concurrently": "^8.2.2"
   }
 }

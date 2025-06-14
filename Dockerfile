@@ -19,3 +19,7 @@ EXPOSE 3000
 
 # 7. When the container runs, start your app
 CMD ["npm", "run", "start"]
+
+
+#docker pull majdyoussef/online-bookstore:latest
+#docker run -d -p 3000:3000 majdyoussef/online-bookstore:latest
