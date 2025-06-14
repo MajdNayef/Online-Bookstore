@@ -1,25 +1,26 @@
-# 1. Base image
 FROM node:18-alpine
-
-# 2. Create app directory
 WORKDIR /usr/src/app
 
-# 3. Copy and install dependencies
+# 1) Install root-level deps (concurrently, etc.)
 COPY package*.json ./
-RUN npm ci 
+RUN npm ci
 
-# 4. Copy the rest of the source
+# 2) Install backend deps
+COPY backend/package*.json backend/
+RUN cd backend && npm ci
+
+# 3) Install frontend deps
+COPY frontend/package*.json frontend/
+RUN cd frontend && npm ci
+
+# 4) Copy all your source
 COPY . .
 
-# 5. (Optional) If you have build scripts—uncomment these:
-# RUN npm run build
+# 5) Expose both ports
+EXPOSE 3000 5173
 
-# 6. Expose the port your app listens on
-EXPOSE 3000
-
-# 7. When the container runs, start your app
-CMD ["npm", "run", "start"]
-
+# 6) Run both servers via concurrently
+CMD ["npm","run","start"]
 
 #docker pull majdyoussef/online-bookstore:latest
 #docker run -d -p 3000:3000 majdyoussef/online-bookstore:latest
