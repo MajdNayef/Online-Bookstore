@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6.0
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: secret
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+
+  app:
+    image: majdyoussef/online-bookstore:latest
+    depends_on:
+      - mongo
+    environment:
+      # <-- point to the "mongo" service by name inside this network
+      MONGO_URI: "mongodb://admin:secret@mongo:27017/bookstore"
+    ports:
+      - "3000:3000"
+      - "5173:5173"
+    stdin_open: true
+    tty: true
+
+volumes:
+  mongo-data:
