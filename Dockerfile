@@ -6,15 +6,16 @@ WORKDIR /usr/src/app
 
 # 3. Copy and install dependencies
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --production
 
 # 4. Copy the rest of the source
 COPY . .
 
-# 5. Build (if it's a front-end build) or start directly
-#    If this is a React build, for instance:
-RUN npm run start
+# 5. (Optional) If you have build scripts—uncomment these:
+# RUN npm run build
 
-# 6. Expose port & define run command
+# 6. Expose the port your app listens on
 EXPOSE 3000
-CMD ["npm", "start"]
+
+# 7. When the container runs, start your app
+CMD ["npm", "run", "start"]
