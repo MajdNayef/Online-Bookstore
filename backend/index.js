@@ -42,7 +42,8 @@ async function startServer() {
 
     // Listen on all interfaces so Docker port-forwarding works
     app.listen(PORT, '0.0.0.0', () => {
-      console.log('🚀 Server listening on http://0.0.0.0:${PORT}');
+      // New — backticks interpolate the PORT constant
+      console.log(`🚀 Server listening on http://0.0.0.0:${PORT}`);
     });
   } catch (err) {
     console.error('❌ MongoDB connection error:', err);
