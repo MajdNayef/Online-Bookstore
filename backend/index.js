@@ -1,40 +1,53 @@
-import express, { request, response } from "express";
-import { PORT, mongoDBURL } from "./config.js";
-import mongoose from "mongoose";
-import { Book } from "./models/bookModel.js";
-import booksRoute from "./routes/booksRoute.js";
-import cors from "cors";
+import 'dotenv/config';
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+
+import booksRoute from './routes/booksRoute.js';
+
+import { PORT, mongoDBURL } from './config.js';
+// config.js should export:
+//   export const PORT = process.env.PORT || 5000;
+//   export const mongoDBURL = process.env.MONGO_URI;
 
 const app = express();
 
-// Middleware for parsing request body
+// — Middlewares —
 app.use(express.json());
-
-// Middleware for handling CORS POLICY
 app.use(cors());
-// app.use(
-//   cors({
-//     origin: "https://localhost:3000",
-//     methods: ["GET", "POST", "PUT", "DELETE"],
-//     allowedHeaders: ["Content-Type"],
-//   })
-// );
 
-app.get("/", (request, response) => {
-  console.log(request);
-  return response.status(234).send("Welcome to MERN Stack Book Shop");
+// Simple root health-check
+app.get('/', (req, res) => {
+  res
+    .status(200)
+    .send('📚 Welcome to the MERN Stack Bookstore API!');
 });
 
-app.use("/books", booksRoute);
+// Mount your book routes
+app.use('/books', booksRoute);
 
-mongoose
-  .connect(mongoDBURL)
-  .then(() => {
-    console.log("App connected to db");
-    app.listen(PORT, () => {
-      console.log(`App listening on port ${PORT}!`);
+// — Startup logic —
+async function startServer() {
+  if (!mongoDBURL) {
+    console.error('❌ Error: Missing MONGO_URI environment variable');
+    process.exit(1);
+  }
+
+  try {
+    await mongoose.connect(mongoDBURL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
     });
-  })
-  .catch((error) => {
-    console.log(error);
-  });
+    console.log('✅ Connected to MongoDB');
+
+    // Listen on all interfaces so Docker port-forwarding works
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log('🚀 Server listening on http://0.0.0.0:${PORT}');
+    });
+  } catch (err) {
+    console.error('❌ MongoDB connection error:', err);
+    process.exit(1);
+  }
+}
+
+startServer();
