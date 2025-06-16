@@ -101,43 +101,53 @@ pipeline {
     //   }
     // }
 
-     stage('Build & Push Docker Image') {
-      steps {
-    script {
-      // Build the image
-      bat "docker build -t majdyoussef/online-bookstore:${env.BUILD_NUMBER} ."
+    //  stage('Build & Push Docker Image') {
+    //   steps {
+    // script {
+    //   // Build the image
+    //   bat "docker build -t majdyoussef/online-bookstore:${env.BUILD_NUMBER} ."
       
-      // Log in to Docker Hub
-      withCredentials([usernamePassword(
-        credentialsId: 'Doc',
-        usernameVariable: 'DOCKER_USER',
-        passwordVariable: 'DOCKER_PASS'
-      )]) {
-        bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+    //   // Log in to Docker Hub
+    //   withCredentials([usernamePassword(
+    //     credentialsId: 'Doc',
+    //     usernameVariable: 'DOCKER_USER',
+    //     passwordVariable: 'DOCKER_PASS'
+    //   )]) {
+    //     bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
 
-        // Tag the image as latest and push both tags
-        bat "docker tag majdyoussef/online-bookstore:${env.BUILD_NUMBER} majdyoussef/online-bookstore:latest"
-        bat "docker push majdyoussef/online-bookstore:${env.BUILD_NUMBER}"
-        bat "docker push majdyoussef/online-bookstore:latest"
-      }
-    }
+    //     // Tag the image as latest and push both tags
+    //     bat "docker tag majdyoussef/online-bookstore:${env.BUILD_NUMBER} majdyoussef/online-bookstore:latest"
+    //     bat "docker push majdyoussef/online-bookstore:${env.BUILD_NUMBER}"
+    //     bat "docker push majdyoussef/online-bookstore:latest"
+    //   }
+    // }
+    //   }
+    // }
+  }
+  
+  post {
+  always {
+    publishHTML( [
+      reportDir:    "reports/jmeter-${env.BUILD_NUMBER}",
+      reportFiles:  'index.html',
+      reportName:   'JMeter HTML Report',
+      keepAll:      true,
+      allowMissing: false
+    ] )
+  }
+
+  post {
+    failure {
+      script {
+        if (ISSUE_KEY) {
+          jiraAddComment(
+            site: env.JIRA_SITE,
+            idOrKey: ISSUE_KEY,
+            comment: "⚠️ Build #${env.BUILD_NUMBER} FAILED: ${env.BUILD_URL}"
+          )
+          echo "❗ Failure comment added to ${ISSUE_KEY}"
+        }
       }
     }
   }
-  
-
-//   post {
-//     failure {
-//       script {
-//         if (ISSUE_KEY) {
-//           jiraAddComment(
-//             site: env.JIRA_SITE,
-//             idOrKey: ISSUE_KEY,
-//             comment: "⚠️ Build #${env.BUILD_NUMBER} FAILED: ${env.BUILD_URL}"
-//           )
-//           echo "❗ Failure comment added to ${ISSUE_KEY}"
-//         }
-//       }
-//     }
-//   }
 }
