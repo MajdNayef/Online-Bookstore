@@ -16,7 +16,7 @@ pipeline {
   stages {
 
 
-  stages {
+    
     stage('Run JMeter Tests') {
       steps {
         // invoke the .bat directly (or shell on Linux)
@@ -28,7 +28,7 @@ pipeline {
         """
       }
     }
-  }
+  
 
     // stage('Create Jira Issue') {
     //   steps {
