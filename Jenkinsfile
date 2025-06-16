@@ -19,6 +19,11 @@ pipeline {
     
     stage('Run JMeter Tests') {
       steps {
+
+              // Ensure the reports directory exists
+      bat """
+        if not exist "%WORKSPACE%\\reports" mkdir "%WORKSPACE%\\reports"
+      """
         // invoke the .bat directly (or shell on Linux)
         bat """
           C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
