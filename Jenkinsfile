@@ -16,7 +16,12 @@ pipeline {
   stages {
 
 
-    
+    stage('Verify Test Plan') {
+  steps {
+    // List the workspace contents so you can see testplans/LoadTest.jmx
+    bat 'dir "%WORKSPACE%\\testplans"'
+  }
+}
     stage('Run JMeter Tests') {
       steps {
 
