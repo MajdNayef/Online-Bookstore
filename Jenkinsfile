@@ -123,10 +123,12 @@ pipeline {
     // }
     //   }
     // }
+
   }
   
   post {
-  always {
+
+      always {
     publishHTML( [
       reportDir:    "reports/jmeter-${env.BUILD_NUMBER}",
       reportFiles:  'index.html',
@@ -136,7 +138,6 @@ pipeline {
     ] )
   }
 
-  post {
     failure {
       script {
         if (ISSUE_KEY) {
@@ -150,4 +151,6 @@ pipeline {
       }
     }
   }
+}
+
 }
