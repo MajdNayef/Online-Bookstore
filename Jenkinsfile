@@ -14,6 +14,22 @@ pipeline {
   }
 
   stages {
+
+
+  stages {
+    stage('Run JMeter Tests') {
+      steps {
+        // invoke the .bat directly (or shell on Linux)
+        bat """
+          C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
+            -n -t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
+            -l "%WORKSPACE%\\results.jtl" ^
+            -e -o "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}"
+        """
+      }
+    }
+  }
+
     // stage('Create Jira Issue') {
     //   steps {
     //     script {
