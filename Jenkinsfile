@@ -15,21 +15,20 @@ pipeline {
 
   stages {
 
-
     stage('Verify Test Plan') {
-  steps {
-    // List the workspace contents so you can see testplans/LoadTest.jmx
-    bat 'dir "%WORKSPACE%\\testplans"'
-  }
-}
+      steps {
+        // List the workspace contents so you can see testplans/LoadTest.jmx
+        bat 'dir "%WORKSPACE%\\testplans"'
+      }
+    }
+
     stage('Run JMeter Tests') {
       steps {
-
-              // Ensure the reports directory exists
-      bat """
-        if not exist "%WORKSPACE%\\reports" mkdir "%WORKSPACE%\\reports"
-      """
-        // invoke the .bat directly (or shell on Linux)
+        // Ensure the reports directory exists
+        bat """
+          if not exist "%WORKSPACE%\\reports" mkdir "%WORKSPACE%\\reports"
+        """
+        // Invoke the .bat directly (or shell on Linux)
         bat """
           C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
             -n -t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
@@ -38,7 +37,6 @@ pipeline {
         """
       }
     }
-  
 
     // stage('Create Jira Issue') {
     //   steps {
@@ -90,7 +88,7 @@ pipeline {
     // stage('Transition to Done') {
     //   steps {
     //     script {
-    //       // replace 31 with the actual ID you saw for 'Done'
+    //       // Replace 31 with the actual ID you saw for 'Done'
     //       jiraTransitionIssue(
     //         site: env.JIRA_SITE,
     //         idOrKey: ISSUE_KEY,
@@ -101,42 +99,41 @@ pipeline {
     //   }
     // }
 
-    //  stage('Build & Push Docker Image') {
+    // stage('Build & Push Docker Image') {
     //   steps {
-    // script {
-    //   // Build the image
-    //   bat "docker build -t majdyoussef/online-bookstore:${env.BUILD_NUMBER} ."
-      
-    //   // Log in to Docker Hub
-    //   withCredentials([usernamePassword(
-    //     credentialsId: 'Doc',
-    //     usernameVariable: 'DOCKER_USER',
-    //     passwordVariable: 'DOCKER_PASS'
-    //   )]) {
-    //     bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+    //     script {
+    //       // Build the image
+    //       bat "docker build -t majdyoussef/online-bookstore:${env.BUILD_NUMBER} ."
 
-    //     // Tag the image as latest and push both tags
-    //     bat "docker tag majdyoussef/online-bookstore:${env.BUILD_NUMBER} majdyoussef/online-bookstore:latest"
-    //     bat "docker push majdyoussef/online-bookstore:${env.BUILD_NUMBER}"
-    //     bat "docker push majdyoussef/online-bookstore:latest"
-    //   }
-    // }
+    //       // Log in to Docker Hub
+    //       withCredentials([usernamePassword(
+    //         credentialsId: 'Doc',
+    //         usernameVariable: 'DOCKER_USER',
+    //         passwordVariable: 'DOCKER_PASS'
+    //       )]) {
+    //         bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+
+    //         // Tag the image as latest and push both tags
+    //         bat "docker tag majdyoussef/online-bookstore:${env.BUILD_NUMBER} majdyoussef/online-bookstore:latest"
+    //         bat "docker push majdyoussef/online-bookstore:${env.BUILD_NUMBER}"
+    //         bat "docker push majdyoussef/online-bookstore:latest"
+    //       }
+    //     }
     //   }
     // }
 
   }
-  
+
   post {
-
-      always {
-    publishHTML( [
-      reportDir:    "reports/jmeter-${env.BUILD_NUMBER}",
-      reportFiles:  'index.html',
-      reportName:   'JMeter HTML Report',
-      keepAll:      true,
-      allowMissing: false
-    ] )
-  }
+    always {
+      publishHTML([
+        reportDir: "reports/jmeter-${env.BUILD_NUMBER}",
+        reportFiles: 'index.html',
+        reportName: 'JMeter HTML Report',
+        keepAll: true,
+        allowMissing: false
+      ])
+    }
 
     failure {
       script {
