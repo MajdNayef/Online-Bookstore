@@ -22,21 +22,22 @@ pipeline {
       }
     }
 
-    stage('Run JMeter Tests') {
-      steps {
-        // Ensure the reports directory exists
-        bat """
-          if not exist "%WORKSPACE%\\reports" mkdir "%WORKSPACE%\\reports"
-        """
-        // Invoke the .bat directly (or shell on Linux)
-        bat """
-          C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
-            -n -t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
-            -l "%WORKSPACE%\\results.jtl" ^
-            -e -o "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}"
-        """
-      }
-    }
+stage('Run JMeter Tests') {
+  steps {
+    // create the reports dir
+    bat 'if not exist "%WORKSPACE%\\reports" mkdir "%WORKSPACE%\\reports"'
+    // run JMeter with a dedicated log file
+    bat """
+      C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
+        -n ^
+        -t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
+        -l "%WORKSPACE%\\results.jtl" ^
+        -j "%WORKSPACE%\\jmeter.log" ^
+        -e ^
+        -o "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}"
+    """
+  }
+}
 
     // stage('Create Jira Issue') {
     //   steps {
@@ -125,17 +126,21 @@ pipeline {
   }
 
   post {
-    always {
-      publishHTML([
-        reportDir: "reports/jmeter-${env.BUILD_NUMBER}",
-        reportFiles: 'index.html',
-        reportName: 'JMeter HTML Report',
-        keepAll: true,
-        allowMissing: false,
-        alwaysLinkToLastBuild: true    // ← this is now required
-
-      ])
-    }
+  always {
+    // archive the JMeter CLI log
+    archiveArtifacts artifacts: 'jmeter.log', fingerprint: true
+  }
+  success {
+    // only publish HTML if JMeter actually succeeded and created the folder
+    publishHTML([
+      reportDir:             "reports/jmeter-${env.BUILD_NUMBER}",
+      reportFiles:           'index.html',
+      reportName:            'JMeter HTML Report',
+      allowMissing:          false,
+      keepAll:               true,
+      alwaysLinkToLastBuild: true
+    ])
+  }
 
     failure {
       script {
