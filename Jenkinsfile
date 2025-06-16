@@ -131,7 +131,9 @@ pipeline {
         reportFiles: 'index.html',
         reportName: 'JMeter HTML Report',
         keepAll: true,
-        allowMissing: false
+        allowMissing: false,
+        alwaysLinkToLastBuild: true    // ← this is now required
+
       ])
     }
 
