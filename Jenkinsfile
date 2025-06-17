@@ -55,6 +55,8 @@ stage('Run JMeter Tests') {
         C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
           -Jjmeter.reportgenerator.graph.overall_exclude_controllers=false ^
           -Jjmeter.reportgenerator.exporter.html.show_controllers_only=false ^
+          -Jjmeter.save.saveservice.output_format=xml ^
+          -Jjmeter.save.saveservice.response_data.on_error=true ^
           -n ^
           -t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
           -l "%WORKSPACE%\\results.jtl" ^
