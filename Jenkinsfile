@@ -67,6 +67,18 @@ pipeline {
         echo "📋 JMeter CLI log (jmeter.log):"
         // now this will always run, even if JMeter failed
         bat 'type "%WORKSPACE%\\jmeter.log"'
+
+        // right after echo "🔍 Failures in results.jtl…"
+script {
+  // returnStatus: 0 means a match was found (i.e. there *are* failures)
+  def failuresFound = bat(returnStatus: true, script: 'findstr /C:",false," "%WORKSPACE%\\results.jtl"')
+  if (failuresFound == 0) {
+    // Mark the build unstable so your Log Failure Details stage runs
+    currentBuild.result = 'UNSTABLE'
+  } else {
+    echo "✅ No failures in the JTL"
+  }
+}
       }
     }
 
