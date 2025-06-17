@@ -53,6 +53,8 @@ stage('Run JMeter Tests') {
     catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
       bat """
         C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
+          -Jjmeter.reportgenerator.graph.overall_exclude_controllers=false ^
+          -Jjmeter.reportgenerator.exporter.html.show_controllers_only=false ^
           -n ^
           -t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
           -l "%WORKSPACE%\\results.jtl" ^
