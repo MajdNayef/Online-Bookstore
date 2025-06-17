@@ -1,0 +1,46 @@
+pipeline {
+  agent any
+
+  environment {
+    // Must match the name in Manage Jenkins → Configure System → Jira
+    JIRA_SITE  = 'jira-rest-api'
+    // We’ll populate this if/when we create a Jira issue
+    ISSUE_KEY  = ''
+  }
+
+  stages {
+
+    // … your Jira / Docker stages go here, un-commented if you want them …
+
+  }
+
+  post {
+    always {
+      echo "📦 Archiving JMeter outputs…"
+      archiveArtifacts artifacts: 'results.jtl, jmeter.log', fingerprint: true
+    }
+    success {
+      echo "📊 Publishing JMeter HTML report…"
+      publishHTML([
+        reportDir:    "reports/jmeter-${env.BUILD_NUMBER}",
+        reportFiles:  'index.html',
+        reportName:   'JMeter HTML Report',
+        keepAll:      true,
+        alwaysLinkToLastBuild: true
+      ])
+    }
+    failure {
+      script {
+        if (env.ISSUE_KEY) {
+          echo "💥 Notifying Jira of failure…"
+          jiraAddComment(
+            site:      env.JIRA_SITE,
+            idOrKey:   env.ISSUE_KEY,
+            comment:   "⚠️ Build #${env.BUILD_NUMBER} FAILED: ${env.BUILD_URL}"
+          )
+        }
+      }
+    }
+  }
+
+}
