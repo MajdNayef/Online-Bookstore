@@ -133,12 +133,12 @@ stage('Run JMeter Tests') {
   success {
     // only publish HTML if JMeter actually succeeded and created the folder
     publishHTML([
-      reportDir:             "reports/jmeter-${env.BUILD_NUMBER}",
-      reportFiles:           'index.html',
-      reportName:            'JMeter HTML Report',
-      allowMissing:          false,
-      keepAll:               true,
-      alwaysLinkToLastBuild: true
+  reportDir:               "reports/jmeter-${env.BUILD_NUMBER}",
+  reportFiles:             'index.html',
+  reportName:              'JMeter HTML Report',
+  alwaysLinkToLastBuild:   false,          // <--- this is required
+  keepAll:                 true,
+  allowMissing:            false
     ])
   }
 
