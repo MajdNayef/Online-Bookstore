@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
-    
-    <!-- 1) The Test Plan node -->
+
+    <!-- 1) Test Plan node -->
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Test Plan" enabled="true">
       <stringProp name="TestPlan.comments"></stringProp>
       <boolProp name="TestPlan.functional_mode">false</boolProp>
       <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
-      <!-- you always need this elementProp even if it’s empty -->
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments"
                    guiclass="ArgumentsPanel" testclass="Arguments"
                    testname="User Defined Variables" enabled="true">
@@ -16,36 +15,20 @@
       <stringProp name="TestPlan.user_define_classpath"></stringProp>
     </TestPlan>
     <hashTree/>
-    
-    <!-- 2) One Thread Group with a finite loop count -->
+
+    <!-- 2) Thread Group: 1 thread, 5 loops -->
     <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group" enabled="true">
       <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
-      <!-- LoopController set to a fixed number of loops instead of forever -->
-      <elementProp name="ThreadGroup.main_controller" elementType="LoopController"
-                   guiclass="LoopControlPanel" testclass="LoopController"
-                   testname="Loop Controller" enabled="true">
-        <boolProp name="LoopController.continue_forever">false</boolProp>
-        <intProp  name="LoopController.loops">5</intProp>
-      </elementProp>
       <stringProp name="ThreadGroup.num_threads">1</stringProp>
       <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+      <stringProp name="ThreadGroup.loop_count">5</stringProp>
       <boolProp   name="ThreadGroup.scheduler">false</boolProp>
       <stringProp name="ThreadGroup.duration"></stringProp>
       <stringProp name="ThreadGroup.delay"></stringProp>
     </ThreadGroup>
     <hashTree>
-      
-      <!-- 3) Throttle to 50 requests per minute -->
-      <ConstantThroughputTimer guiclass="ConstantThroughputTimerGui"
-                               testclass="ConstantThroughputTimer"
-                               testname="Throughput 50 req/min" enabled="true">
-        <!-- 1 = per minute -->
-        <stringProp name="ConstantThroughputTimer.calcMode">1</stringProp>
-        <stringProp name="ConstantThroughputTimer.targetThroughput">50</stringProp>
-      </ConstantThroughputTimer>
-      <hashTree/>
-      
-      <!-- 4) Your actual HTTP Request -->
+
+      <!-- 3) HTTP Request -->
       <HTTPSamplerProxy guiclass="HttpTestSampleGui"
                         testclass="HTTPSamplerProxy"
                         testname="GET /api/books" enabled="true">
@@ -68,8 +51,8 @@
         <stringProp name="HTTPSampler.response_timeout"></stringProp>
       </HTTPSamplerProxy>
       <hashTree/>
-      
+
     </hashTree>
-    
+
   </hashTree>
 </jmeterTestPlan>
