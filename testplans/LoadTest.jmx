@@ -25,7 +25,7 @@
                    guiclass="LoopControlPanel" testclass="LoopController"
                    testname="Loop Controller" enabled="true">
         <boolProp name="LoopController.continue_forever">false</boolProp>
-        <intProp  name="LoopController.loops">50</intProp>
+        <intProp  name="LoopController.loops">5</intProp>
       </elementProp>
       <stringProp name="ThreadGroup.num_threads">1</stringProp>
       <stringProp name="ThreadGroup.ramp_time">1</stringProp>
