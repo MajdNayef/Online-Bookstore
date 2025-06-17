@@ -21,24 +21,24 @@ pipeline {
       }
     }
     
-    stage('Run JMeter Tests') {
-      steps {
-        echo "🚀 Launching JMeter in non-GUI mode…"
-        bat """
-        C:\\apache - jmeter - 5.6.3\\bin\\jmeter.bat ^
-        - n ^
-        - t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
-        - l "%WORKSPACE%\\results.jtl" ^
-        - j "%WORKSPACE%\\jmeter.log" ^
-        - e ^
-        - o "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}"
-        """
-        
-        //* * Dump the CLI log immediately afterwards * *
-        echo "📋 JMeter CLI log (jmeter.log):"
-        bat 'type "%WORKSPACE%\\jmeter.log"'
-      }
-    }
+stage('Run JMeter Tests') {
+  steps {
+    echo "🚀 Launching JMeter in non-GUI mode…"
+    bat """
+      C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
+        -n ^
+        -t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
+        -l "%WORKSPACE%\\results.jtl" ^
+        -j "%WORKSPACE%\\jmeter.log" ^
+        -e ^
+        -o "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}"
+    """
+
+    // **Dump the CLI log immediately afterwards**
+    echo "📋 JMeter CLI log (jmeter.log):"
+    bat 'type "%WORKSPACE%\\jmeter.log"'
+  }
+}
     
     stage('Report JMeter Progress') {
       steps {
