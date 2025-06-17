@@ -23,6 +23,14 @@ pipeline {
     
 stage('Run JMeter Tests') {
   steps {
+
+        echo "🧹 Cleaning up from previous runs…"
+    // delete old results, log and report dir
+    bat '''
+      if exist "%WORKSPACE%\\results.jtl" del /Q "%WORKSPACE%\\results.jtl"
+      if exist "%WORKSPACE%\\jmeter.log"  del /Q "%WORKSPACE%\\jmeter.log"
+      if exist "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}" rmdir /S /Q "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}"
+    '''
     echo "🚀 Launching JMeter in non-GUI mode…"
     // wrap so failures don’t skip the next step
     catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
