@@ -23,18 +23,8 @@ pipeline {
     
     stage('Run JMeter Tests') {
       steps {
-        echo "🧹 Cleaning previous JMeter outputs…"
-        // Delete any old JTL and log to satisfy JMeter’s - l requirement
-        bat '''
-        if exist "%WORKSPACE%\\results.jtl" del / Q "%WORKSPACE%\\results.jtl"
-        if exist "%WORKSPACE%\\jmeter.log" del / Q "%WORKSPACE%\\jmeter.log"
-        '''
-        
-        echo "📂 Ensuring reports folder exists…"
-        bat 'if not exist "%WORKSPACE%\\reports" mkdir "%WORKSPACE%\\reports"'
-        
         echo "🚀 Launching JMeter in non-GUI mode…"
-        bat '''
+        bat """
         C:\\apache - jmeter - 5.6.3\\bin\\jmeter.bat ^
         - n ^
         - t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
@@ -42,14 +32,14 @@ pipeline {
         - j "%WORKSPACE%\\jmeter.log" ^
         - e ^
         - o "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}"
-        '''
+        """
         
-        //* * Right here * * — dump the JMeter CLI log into the console
+        //* * Dump the CLI log immediately afterwards * *
         echo "📋 JMeter CLI log (jmeter.log):"
         bat 'type "%WORKSPACE%\\jmeter.log"'
       }
-      
     }
+    
     stage('Report JMeter Progress') {
       steps {
         script {
