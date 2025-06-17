@@ -83,27 +83,16 @@ script {
     }
 
     stage('Log Failure Details') {
-      when {
-        expression { currentBuild.currentResult == 'FAILURE' }
-      }
       steps {
-        echo "📝 Parsing results.jtl for failed samples and dumping responseData…"
         script {
-          // read the CSV into a list of maps
-          def rows = readCSV file: 'results.jtl', skipFirstLine: false
-          // the header row will include a "responseData" column
-          rows.each { row ->
-            if (row.success == 'false') {
-              echo "----"
-              echo "Label:    ${row.label}"
-              echo "Code:     ${row.responseCode} ${row.responseMessage}"
-              echo "URL:      ${row.URL}"
-              echo "Response:"
-              // multi-line log
-              row.responseData.split("\\r?\\n").each { line ->
-                echo "    ${line}"
-              }
-            }
+          // re-check results.jtl for failures
+          def rc = bat(returnStatus: true,
+                       script: 'findstr /C:",false," "%WORKSPACE%\\results.jtl"')
+          if (rc == 0) {
+            echo "💥 JMeter failures found—here are the lines:"
+            bat 'findstr /C:",false," "%WORKSPACE%\\results.jtl"'
+          } else {
+            echo "✅ No JMeter failures to log."
           }
         }
       }
