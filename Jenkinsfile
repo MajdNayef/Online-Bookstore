@@ -21,16 +21,18 @@ pipeline {
       }
     }
 
-    stage('Debug Test Plan') {
+stage('Debug Test Plan') {
   steps {
-    echo "🔍 Inspecting LoopController in LoadTest.jmx…"
-    // on Windows
-    bat """
-      findstr /I "LoopController.continue_forever" "%WORKSPACE%\\testplans\\LoadTest.jmx"
-      findstr /I "LoopController.loops"         "%WORKSPACE%\\testplans\\LoadTest.jmx"
-    """
+    echo "🔍 Checking loop_count in LoadTest.jmx…"
+    // findstr returns non-zero when no matches => we rescue that with || exit 0
+    bat '''
+      findstr /I "ThreadGroup.loop_count" "%WORKSPACE%\\testplans\\LoadTest.jmx" || (
+        echo ⚠️  loop_count not found in JMX—are you using LoopController?
+      )
+    '''
   }
-  }
+}
+
     
 stage('Run JMeter Tests') {
   steps {
