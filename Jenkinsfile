@@ -56,7 +56,6 @@ stage('Run JMeter Tests') {
           -n ^
           -t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
           -l "%WORKSPACE%\\results.jtl" ^
-          bat 'findstr /C:",false," "%WORKSPACE%\\results.jtl"'
           -j "%WORKSPACE%\\jmeter.log" ^
           -e ^
           -o "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}"
@@ -66,6 +65,9 @@ stage('Run JMeter Tests') {
     echo "📋 JMeter CLI log (jmeter.log):"
     // now this will always run, even if JMeter failed
     bat 'type "%WORKSPACE%\\jmeter.log"'
+        echo "🔍 Failures in results.jtl (lines with success=false):"
+    // run findstr on its own
+    bat 'findstr /C:",false," "%WORKSPACE%\\results.jtl" || echo No failures found.'
   }
 }
 
