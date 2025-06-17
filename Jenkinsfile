@@ -56,6 +56,7 @@ stage('Run JMeter Tests') {
           -n ^
           -t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
           -l "%WORKSPACE%\\results.jtl" ^
+          bat 'findstr /C:",false," "%WORKSPACE%\\results.jtl"'
           -j "%WORKSPACE%\\jmeter.log" ^
           -e ^
           -o "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}"
