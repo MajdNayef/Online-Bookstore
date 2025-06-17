@@ -21,17 +21,21 @@ pipeline {
       }
     }
 
-stage('Debug Test Plan') {
-  steps {
-    echo "🔍 Checking loop_count in LoadTest.jmx…"
-    // findstr returns non-zero when no matches => we rescue that with || exit 0
-    bat '''
-      findstr /I "ThreadGroup.loop_count" "%WORKSPACE%\\testplans\\LoadTest.jmx" || (
-        echo ⚠️  loop_count not found in JMX—are you using LoopController?
-      )
-    '''
-  }
-}
+   stage('Debug Test Plan') {
+     steps {
+      echo "🔍 Checking LoopController.loops in LoadTest.jmx…"
+      // use returnStatus so non-zero doesn’t fail the build
+      script {
+        def rc = bat(
+          script: 'findstr /I "LoopController.loops" "%WORKSPACE%\\testplans\\LoadTest.jmx"',
+          returnStatus: true
+        )
+        if (rc != 0) {
+          echo "⚠️  LoopController.loops not found in JMX"
+        }
+      }
+     }
+   }
 
     
 stage('Run JMeter Tests') {
