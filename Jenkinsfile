@@ -14,19 +14,20 @@ pipeline {
   }
 
   stages {
-
-    stage('Verify Test Plan') {
-      steps {
-        // List the workspace contents so you can see testplans/LoadTest.jmx
-        bat 'dir "%WORKSPACE%\\testplans"'
-      }
-    }
-
 stage('Run JMeter Tests') {
   steps {
-    // create the reports dir
-    bat 'if not exist "%WORKSPACE%\\reports" mkdir "%WORKSPACE%\\reports"'
-    // run JMeter with a dedicated log file
+    // 1) Delete any leftover results/jmeter.log so JMeter sees a “fresh” run
+    bat """
+      if exist "%WORKSPACE%\\results.jtl" del /Q "%WORKSPACE%\\results.jtl"
+      if exist "%WORKSPACE%\\jmeter.log" del /Q "%WORKSPACE%\\jmeter.log"
+    """
+
+    // 2) Ensure the reports folder exists
+    bat """
+      if not exist "%WORKSPACE%\\reports" mkdir "%WORKSPACE%\\reports"
+    """
+
+    // 3) Run JMeter non-GUI
     bat """
       C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
         -n ^
@@ -37,6 +38,8 @@ stage('Run JMeter Tests') {
         -o "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}"
     """
   }
+}
+
 }
 
     // stage('Create Jira Issue') {
