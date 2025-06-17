@@ -24,21 +24,25 @@ pipeline {
 stage('Run JMeter Tests') {
   steps {
     echo "🚀 Launching JMeter in non-GUI mode…"
-    bat """
-      C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
-        -n ^
-        -t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
-        -l "%WORKSPACE%\\results.jtl" ^
-        -j "%WORKSPACE%\\jmeter.log" ^
-        -e ^
-        -o "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}"
-    """
+    // wrap so failures don’t skip the next step
+    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+      bat """
+        C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
+          -n ^
+          -t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
+          -l "%WORKSPACE%\\results.jtl" ^
+          -j "%WORKSPACE%\\jmeter.log" ^
+          -e ^
+          -o "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}"
+      """
+    }
 
-    // **Dump the CLI log immediately afterwards**
     echo "📋 JMeter CLI log (jmeter.log):"
+    // now this will always run, even if JMeter failed
     bat 'type "%WORKSPACE%\\jmeter.log"'
   }
 }
+
     
     stage('Report JMeter Progress') {
       steps {
