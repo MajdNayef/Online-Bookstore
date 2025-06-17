@@ -30,6 +30,7 @@ pipeline {
       findstr /I "LoopController.loops"         "%WORKSPACE%\\testplans\\LoadTest.jmx"
     """
   }
+  }
     
 stage('Run JMeter Tests') {
   steps {
