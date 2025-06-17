@@ -20,6 +20,16 @@ pipeline {
         bat 'dir "%WORKSPACE%\\testplans"'
       }
     }
+
+    stage('Debug Test Plan') {
+  steps {
+    echo "🔍 Inspecting LoopController in LoadTest.jmx…"
+    // on Windows
+    bat """
+      findstr /I "LoopController.continue_forever" "%WORKSPACE%\\testplans\\LoadTest.jmx"
+      findstr /I "LoopController.loops"         "%WORKSPACE%\\testplans\\LoadTest.jmx"
+    """
+  }
     
 stage('Run JMeter Tests') {
   steps {
