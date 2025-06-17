@@ -51,19 +51,17 @@ stage('Run JMeter Tests') {
     echo "🚀 Launching JMeter in non-GUI mode…"
     // wrap so failures don’t skip the next step
     catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-      bat """
-        C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
-          -Jjmeter.reportgenerator.graph.overall_exclude_controllers=false ^
-          -Jjmeter.reportgenerator.exporter.html.show_controllers_only=false ^
-          -Jjmeter.save.saveservice.output_format=xml ^
-          -Jjmeter.save.saveservice.response_data.on_error=true ^
-          -n ^
-          -t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
-          -l "%WORKSPACE%\\results.jtl" ^
-          -j "%WORKSPACE%\\jmeter.log" ^
-          -e ^
-          -o "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}"
-      """
+bat """
+  C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
+    -Jjmeter.save.saveservice.output_format=csv ^
+    -Jjmeter.save.saveservice.response_data.on_error=true ^
+    -n ^
+    -t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
+    -l "%WORKSPACE%\\results.jtl" ^
+    -j "%WORKSPACE%\\jmeter.log" ^
+    -e ^
+    -o "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}"
+"""
     }
 
     echo "📋 JMeter CLI log (jmeter.log):"
