@@ -98,24 +98,24 @@ script {
       }
     }
 
-    stage('Report JMeter Progress') {
-      steps {
-        script {
-          // after you run jmeter CLI with -e / -o you’ll have:
-          // workspace / reports / jmeter - < build > / statistics.json
-          def statsFile = "reports/jmeter-${env.BUILD_NUMBER}/statistics.json"
-          if (fileExists(statsFile)) {
-            // use the pipeline JSON reader
-            def stats = readJSON file: statsFile
-            // sampleCount under “Total” >= number of requests (iterations) completed
-            def done = stats.Total.sampleCount
-            echo "✅ JMeter has completed ${done} iteration${done == 1 ? '' : 's'} so far."
-          } else {
-            echo "⚠️ No JMeter statistics.json found at ${statsFile} — maybe the test hasn’t finished generating its report yet."
-          }
-        }
-      }
-    }
+    // stage('Report JMeter Progress') {
+    //   steps {
+    //     script {
+    //       // after you run jmeter CLI with -e / -o you’ll have:
+    //       // workspace / reports / jmeter - < build > / statistics.json
+    //       def statsFile = "reports/jmeter-${env.BUILD_NUMBER}/statistics.json"
+    //       if (fileExists(statsFile)) {
+    //         // use the pipeline JSON reader
+    //         def stats = readJSON file: statsFile
+    //         // sampleCount under “Total” >= number of requests (iterations) completed
+    //         def done = stats.Total.sampleCount
+    //         echo "✅ JMeter has completed ${done} iteration${done == 1 ? '' : 's'} so far."
+    //       } else {
+    //         echo "⚠️ No JMeter statistics.json found at ${statsFile} — maybe the test hasn’t finished generating its report yet."
+    //       }
+    //     }
+    //   }
+    // }
 
     // stage('Create Jira Issue') {
     //   steps {
@@ -151,25 +151,25 @@ script {
     //   }
     // }
 
-    // stage('Transition Jira to Done') {
-    //   steps {
-    //     script {
-    //       echo "➡️ Transitioning ${env.ISSUE_KEY} to Done…"
-    //       def transitions = jiraGetIssueTransitions(site: env.JIRA_SITE, idOrKey: env.ISSUE_KEY)
-    //       def doneId = transitions.data.transitions.find { it.name == 'Done' }?.id
-    //       if (doneId) {
-    //         jiraTransitionIssue(
-    //           site:    env.JIRA_SITE,
-    //           idOrKey: env.ISSUE_KEY,
-    //           input:   [ transition: [ id: doneId ] ]
-    //         )
-    //         echo "➡️ ${env.ISSUE_KEY} is now Done"
-    //       } else {
-    //         echo "⚠️ Could not find a 'Done' transition for ${env.ISSUE_KEY}"
-    //       }
-    //     }
-    //   }
-    // }
+    stage('Transition Jira to Done') {
+      steps {
+        script {
+          echo "➡️ Transitioning ${env.ISSUE_KEY} to Done…"
+          def transitions = jiraGetIssueTransitions(site: env.JIRA_SITE, idOrKey: env.ISSUE_KEY)
+          def doneId = transitions.data.transitions.find { it.name == 'Done' }?.id
+          if (doneId) {
+            jiraTransitionIssue(
+              site:    env.JIRA_SITE,
+              idOrKey: env.ISSUE_KEY,
+              input:   [ transition: [ id: doneId ] ]
+            )
+            echo "➡️ ${env.ISSUE_KEY} is now Done"
+          } else {
+            echo "⚠️ Could not find a 'Done' transition for ${env.ISSUE_KEY}"
+          }
+        }
+      }
+    }
 
     // stage('Build & Push Docker Image') {
     //   steps {
@@ -194,33 +194,33 @@ script {
 
   }
 
-  post {
-    always {
-      echo "📦 Archiving JMeter outputs…"
-      archiveArtifacts artifacts: 'results.jtl, jmeter.log', fingerprint: true
-    }
-    success {
-      echo "📊 Publishing JMeter HTML report…"
-      publishHTML([
-        reportDir:             "reports/jmeter-${env.BUILD_NUMBER}",
-        reportFiles:           'index.html',
-        reportName:            'JMeter HTML Report',
-        keepAll:               true,
-        alwaysLinkToLastBuild: true,
-        allowMissing:          false
-      ])
-    }
-    failure {
-      script {
-        if (env.ISSUE_KEY) {
-          echo "💥 Notifying Jira of failure…"
-          jiraAddComment(
-            site:    env.JIRA_SITE,
-            idOrKey: env.ISSUE_KEY,
-            comment: "⚠️ Build #${env.BUILD_NUMBER} FAILED: ${env.BUILD_URL}"
-          )
-        }
-      }
-    }
-  }
+  // post {
+  //   always {
+  //     echo "📦 Archiving JMeter outputs…"
+  //     archiveArtifacts artifacts: 'results.jtl, jmeter.log', fingerprint: true
+  //   }
+  //   success {
+  //     echo "📊 Publishing JMeter HTML report…"
+  //     publishHTML([
+  //       reportDir:             "reports/jmeter-${env.BUILD_NUMBER}",
+  //       reportFiles:           'index.html',
+  //       reportName:            'JMeter HTML Report',
+  //       keepAll:               true,
+  //       alwaysLinkToLastBuild: true,
+  //       allowMissing:          false
+  //     ])
+  //   }
+  //   failure {
+  //     script {
+  //       if (env.ISSUE_KEY) {
+  //         echo "💥 Notifying Jira of failure…"
+  //         jiraAddComment(
+  //           site:    env.JIRA_SITE,
+  //           idOrKey: env.ISSUE_KEY,
+  //           comment: "⚠️ Build #${env.BUILD_NUMBER} FAILED: ${env.BUILD_URL}"
+  //         )
+  //       }
+  //     }
+  //   }
+  // }
 }
