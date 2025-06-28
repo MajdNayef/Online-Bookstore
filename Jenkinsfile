@@ -2,16 +2,16 @@
 // 11 : To Do
 // 21 : In Progress
 // 311 : In Review
-// 41 : Donepipeline {
-pipeline {
+// 41 : Done
 
+pipeline {
   agent any
 
   environment {
     // Must match the name in Manage Jenkins → Configure System → Jira
-    JIRA_SITE  = 'jira-rest-api'
+    JIRA_SITE = 'jira-rest-api'
     // We’ll populate this if/when we create a Jira issue
-    ISSUE_KEY  = ''
+    ISSUE_KEY = ''
   }
 
   stages {
@@ -68,17 +68,17 @@ pipeline {
         // now this will always run, even if JMeter failed
         bat 'type "%WORKSPACE%\\jmeter.log"'
 
-        // right after echo "🔍 Failures in results.jtl…"
-script {
-  // returnStatus: 0 means a match was found (i.e. there *are* failures)
-  def failuresFound = bat(returnStatus: true, script: 'findstr /C:",false," "%WORKSPACE%\\results.jtl"')
-  if (failuresFound == 0) {
-    // Mark the build unstable so your Log Failure Details stage runs
-    currentBuild.result = 'UNSTABLE'
-  } else {
-    echo "✅ No failures in the JTL"
-  }
-}
+        echo "🔍 Failures in results.jtl…"
+        script {
+          // returnStatus: 0 means a match was found (i.e. there *are* failures)
+          def failuresFound = bat(returnStatus: true, script: 'findstr /C:",false," "%WORKSPACE%\\results.jtl"')
+          if (failuresFound == 0) {
+            // Mark the build unstable so your Log Failure Details stage runs
+            currentBuild.result = 'UNSTABLE'
+          } else {
+            echo "✅ No failures in the JTL"
+          }
+        }
       }
     }
 
@@ -86,8 +86,7 @@ script {
       steps {
         script {
           // re-check results.jtl for failures
-          def rc = bat(returnStatus: true,
-                       script: 'findstr /C:",false," "%WORKSPACE%\\results.jtl"')
+          def rc = bat(returnStatus: true, script: 'findstr /C:",false," "%WORKSPACE%\\results.jtl"')
           if (rc == 0) {
             echo "💥 JMeter failures found—here are the lines:"
             bat 'findstr /C:",false," "%WORKSPACE%\\results.jtl"'
@@ -98,24 +97,22 @@ script {
       }
     }
 
-    stage('Report JMeter Progress') {
-      steps {
-        script {
-          // after you run jmeter CLI with -e / -o you’ll have:
-          // workspace / reports / jmeter - < build > / statistics.json
-          def statsFile = "reports/jmeter-${env.BUILD_NUMBER}/statistics.json"
-          if (fileExists(statsFile)) {
-            // use the pipeline JSON reader
-            def stats = readJSON file: statsFile
-            // sampleCount under “Total” >= number of requests (iterations) completed
-            def done = stats.Total.sampleCount
-            echo "✅ JMeter has completed ${done} iteration${done == 1 ? '' : 's'} so far."
-          } else {
-            echo "⚠️ No JMeter statistics.json found at ${statsFile} — maybe the test hasn’t finished generating its report yet."
-          }
-        }
-      }
-    }
+    // --- Optional/Commented Stages ---
+
+    // stage('Report JMeter Progress') {
+    //   steps {
+    //     script {
+    //       def statsFile = "reports/jmeter-${env.BUILD_NUMBER}/statistics.json"
+    //       if (fileExists(statsFile)) {
+    //         def stats = readJSON file: statsFile
+    //         def done = stats.Total.sampleCount
+    //         echo "✅ JMeter has completed ${done} iteration${done == 1 ? '' : 's'} so far."
+    //       } else {
+    //         echo "⚠️ No JMeter statistics.json found at ${statsFile} — maybe the test hasn’t finished generating its report yet."
+    //       }
+    //     }
+    //   }
+    // }
 
     // stage('Create Jira Issue') {
     //   steps {
@@ -171,6 +168,7 @@ script {
     //   }
     // }
 
+<<<<<<< HEAD
     stage('Build & Push Docker Image') {
       steps {
         script {
@@ -191,9 +189,32 @@ script {
         }
       }
     }
+=======
+    // stage('Build & Push Docker Image') {
+    //   steps {
+    //     script {
+    //       echo "🐳 Building Docker image…"
+    //       bat "docker build -t majdyoussef/online-bookstore:${env.BUILD_NUMBER} ."
+    //       echo "🔑 Logging in & pushing to Docker Hub…"
+    //       withCredentials([usernamePassword(
+    //         credentialsId: 'Doc',
+    //         usernameVariable: 'DOCKER_USER',
+    //         passwordVariable: 'DOCKER_PASS'
+    //       )]) {
+    //         bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+    //         bat "docker tag majdyoussef/online-bookstore:${env.BUILD_NUMBER} majdyoussef/online-bookstore:latest"
+    //         bat "docker push majdyoussef/online-bookstore:${env.BUILD_NUMBER}"
+    //         bat "docker push majdyoussef/online-bookstore:latest"
+    //       }
+    //     }
+    //   }
+    // }
+>>>>>>> af03d41ef846372440a33d664b1f090bbfaf94f6
+
 
   }
 
+  // --- Post Actions (commented out) ---
   post {
     always {
       echo "📦 Archiving JMeter outputs…"
