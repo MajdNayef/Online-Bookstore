@@ -171,26 +171,26 @@ script {
     //   }
     // }
 
-    // stage('Build & Push Docker Image') {
-    //   steps {
-    //     script {
-    //       echo "🐳 Building Docker image…"
-    //       bat "docker build -t majdyoussef/online-bookstore:${env.BUILD_NUMBER} ."
+    stage('Build & Push Docker Image') {
+      steps {
+        script {
+          echo "🐳 Building Docker image…"
+          bat "docker build -t majdyoussef/online-bookstore:${env.BUILD_NUMBER} ."
 
-    //       echo "🔑 Logging in & pushing to Docker Hub…"
-    //       withCredentials([usernamePassword(
-    //         credentialsId: 'Doc',
-    //         usernameVariable: 'DOCKER_USER',
-    //         passwordVariable: 'DOCKER_PASS'
-    //       )]) {
-    //         bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
-    //         bat "docker tag majdyoussef/online-bookstore:${env.BUILD_NUMBER} majdyoussef/online-bookstore:latest"
-    //         bat "docker push majdyoussef/online-bookstore:${env.BUILD_NUMBER}"
-    //         bat "docker push majdyoussef/online-bookstore:latest"
-    //       }
-    //     }
-    //   }
-    // }
+          echo "🔑 Logging in & pushing to Docker Hub…"
+          withCredentials([usernamePassword(
+            credentialsId: 'Doc',
+            usernameVariable: 'DOCKER_USER',
+            passwordVariable: 'DOCKER_PASS'
+          )]) {
+            bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+            bat "docker tag majdyoussef/online-bookstore:${env.BUILD_NUMBER} majdyoussef/online-bookstore:latest"
+            bat "docker push majdyoussef/online-bookstore:${env.BUILD_NUMBER}"
+            bat "docker push majdyoussef/online-bookstore:latest"
+          }
+        }
+      }
+    }
 
   }
 
