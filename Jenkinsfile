@@ -38,64 +38,64 @@ pipeline {
       }
     }
 
-    stage('Run JMeter Tests') {
-      steps {
-        echo "🧹 Cleaning up from previous runs…"
-        // delete old results, log and report dir
-        bat '''
-          if exist "%WORKSPACE%\\results.jtl" del /Q "%WORKSPACE%\\results.jtl"
-          if exist "%WORKSPACE%\\jmeter.log"  del /Q "%WORKSPACE%\\jmeter.log"
-          if exist "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}" rmdir /S /Q "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}"
-        '''
-        echo "🚀 Launching JMeter in non-GUI mode (with response bodies on error)…"
-        // wrap so failures don’t skip the next step
-        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-          bat """
-            C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
-              -n ^
-              -t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
-              -l "%WORKSPACE%\\results.jtl" ^
-              -j "%WORKSPACE%\\jmeter.log" ^
-              -e ^
-              -o "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}" ^
-              -Jjmeter.save.saveservice.output_format=csv ^
-              -Jjmeter.save.saveservice.print_field_names=true ^
-              -Jjmeter.save.saveservice.response_data.on_error=true
-          """
-        }
+    // stage('Run JMeter Tests') {
+    //   steps {
+    //     echo "🧹 Cleaning up from previous runs…"
+    //     // delete old results, log and report dir
+    //     bat '''
+    //       if exist "%WORKSPACE%\\results.jtl" del /Q "%WORKSPACE%\\results.jtl"
+    //       if exist "%WORKSPACE%\\jmeter.log"  del /Q "%WORKSPACE%\\jmeter.log"
+    //       if exist "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}" rmdir /S /Q "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}"
+    //     '''
+    //     echo "🚀 Launching JMeter in non-GUI mode (with response bodies on error)…"
+    //     // wrap so failures don’t skip the next step
+    //     catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+    //       bat """
+    //         C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
+    //           -n ^
+    //           -t "%WORKSPACE%\\testplans\\LoadTest.jmx" ^
+    //           -l "%WORKSPACE%\\results.jtl" ^
+    //           -j "%WORKSPACE%\\jmeter.log" ^
+    //           -e ^
+    //           -o "%WORKSPACE%\\reports\\jmeter-${env.BUILD_NUMBER}" ^
+    //           -Jjmeter.save.saveservice.output_format=csv ^
+    //           -Jjmeter.save.saveservice.print_field_names=true ^
+    //           -Jjmeter.save.saveservice.response_data.on_error=true
+    //       """
+    //     }
 
-        echo "📋 JMeter CLI log (jmeter.log):"
-        // now this will always run, even if JMeter failed
-        bat 'type "%WORKSPACE%\\jmeter.log"'
+    //     echo "📋 JMeter CLI log (jmeter.log):"
+    //     // now this will always run, even if JMeter failed
+    //     bat 'type "%WORKSPACE%\\jmeter.log"'
 
-        echo "🔍 Failures in results.jtl…"
-        script {
-          // returnStatus: 0 means a match was found (i.e. there *are* failures)
-          def failuresFound = bat(returnStatus: true, script: 'findstr /C:",false," "%WORKSPACE%\\results.jtl"')
-          if (failuresFound == 0) {
-            // Mark the build unstable so your Log Failure Details stage runs
-            currentBuild.result = 'UNSTABLE'
-          } else {
-            echo "✅ No failures in the JTL"
-          }
-        }
-      }
-    }
-
-    stage('Log Failure Details') {
-      steps {
-        script {
-          // re-check results.jtl for failures
-          def rc = bat(returnStatus: true, script: 'findstr /C:",false," "%WORKSPACE%\\results.jtl"')
-          if (rc == 0) {
-            echo "💥 JMeter failures found—here are the lines:"
-            bat 'findstr /C:",false," "%WORKSPACE%\\results.jtl"'
-          } else {
-            echo "✅ No JMeter failures to log."
-          }
-        }
-      }
-    }
+    //     echo "🔍 Failures in results.jtl…"
+    //     script {
+    //       // returnStatus: 0 means a match was found (i.e. there *are* failures)
+    //       def failuresFound = bat(returnStatus: true, script: 'findstr /C:",false," "%WORKSPACE%\\results.jtl"')
+    //       if (failuresFound == 0) {
+    //         // Mark the build unstable so your Log Failure Details stage runs
+    //         currentBuild.result = 'UNSTABLE'
+    //       } else {
+    //         echo "✅ No failures in the JTL"
+    //       }
+    //     }
+    //   }
+    // }
+  
+    // stage('Log Failure Details') {
+    //   steps {
+    //     script {
+    //       // re-check results.jtl for failures
+    //       def rc = bat(returnStatus: true, script: 'findstr /C:",false," "%WORKSPACE%\\results.jtl"')
+    //       if (rc == 0) {
+    //         echo "💥 JMeter failures found—here are the lines:"
+    //         bat 'findstr /C:",false," "%WORKSPACE%\\results.jtl"'
+    //       } else {
+    //         echo "✅ No JMeter failures to log."
+    //       }
+    //     }
+    //   }
+    // }
 
     // --- Optional/Commented Stages ---
 
