@@ -38,6 +38,28 @@ pipeline {
       }
     }
 
+    stage('Build & Push Docker Image') {
+      steps {
+        script {
+          echo "🐳 Building Docker image…"
+          bat "docker build -t majdyoussef/online-bookstore:${env.BUILD_NUMBER} ."
+
+          echo "🔑 Logging in & pushing to Docker Hub…"
+          withCredentials([usernamePassword(
+            credentialsId: 'Doc',
+            usernameVariable: 'DOCKER_USER',
+            passwordVariable: 'DOCKER_PASS'
+          )]) {
+            bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+            bat "docker tag majdyoussef/online-bookstore:${env.BUILD_NUMBER} majdyoussef/online-bookstore:latest"
+            bat "docker push majdyoussef/online-bookstore:${env.BUILD_NUMBER}"
+            bat "docker push majdyoussef/online-bookstore:latest"
+          }
+        }
+      }
+    }
+  }
+
     // stage('Run JMeter Tests') {
     //   steps {
     //     echo "🧹 Cleaning up from previous runs…"
@@ -81,7 +103,8 @@ pipeline {
     //     }
     //   }
     // }
-  
+
+
     // stage('Log Failure Details') {
     //   steps {
     //     script {
@@ -168,56 +191,34 @@ pipeline {
     //   }
     // }
 
-    stage('Build & Push Docker Image') {
-      steps {
-        script {
-          echo "🐳 Building Docker image…"
-          bat "docker build -t majdyoussef/online-bookstore:${env.BUILD_NUMBER} ."
-
-          echo "🔑 Logging in & pushing to Docker Hub…"
-          withCredentials([usernamePassword(
-            credentialsId: 'Doc',
-            usernameVariable: 'DOCKER_USER',
-            passwordVariable: 'DOCKER_PASS'
-          )]) {
-            bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
-            bat "docker tag majdyoussef/online-bookstore:${env.BUILD_NUMBER} majdyoussef/online-bookstore:latest"
-            bat "docker push majdyoussef/online-bookstore:${env.BUILD_NUMBER}"
-            bat "docker push majdyoussef/online-bookstore:latest"
-          }
-        }
-      }
-    }
-  }
-
-  // --- Post Actions (commented out) ---
-  post {
-    always {
-      echo "📦 Archiving JMeter outputs…"
-      archiveArtifacts artifacts: 'results.jtl, jmeter.log', fingerprint: true
-    }
-    success {
-      echo "📊 Publishing JMeter HTML report…"
-      publishHTML([
-        reportDir:             "reports/jmeter-${env.BUILD_NUMBER}",
-        reportFiles:           'index.html',
-        reportName:            'JMeter HTML Report',
-        keepAll:               true,
-        alwaysLinkToLastBuild: true,
-        allowMissing:          false
-      ])
-    }
-    failure {
-      script {
-        if (env.ISSUE_KEY) {
-          echo "💥 Notifying Jira of failure…"
-          jiraAddComment(
-            site:    env.JIRA_SITE,
-            idOrKey: env.ISSUE_KEY,
-            comment: "⚠️ Build #${env.BUILD_NUMBER} FAILED: ${env.BUILD_URL}"
-          )
-        }
-      }
-    }
-  }
+  // // --- Post Actions (commented out) ---
+  // post {
+  //   always {
+  //     echo "📦 Archiving JMeter outputs…"
+  //     archiveArtifacts artifacts: 'results.jtl, jmeter.log', fingerprint: true
+  //   }
+  //   success {
+  //     echo "📊 Publishing JMeter HTML report…"
+  //     publishHTML([
+  //       reportDir:             "reports/jmeter-${env.BUILD_NUMBER}",
+  //       reportFiles:           'index.html',
+  //       reportName:            'JMeter HTML Report',
+  //       keepAll:               true,
+  //       alwaysLinkToLastBuild: true,
+  //       allowMissing:          false
+  //     ])
+  //   }
+  //   failure {
+  //     script {
+  //       if (env.ISSUE_KEY) {
+  //         echo "💥 Notifying Jira of failure…"
+  //         jiraAddComment(
+  //           site:    env.JIRA_SITE,
+  //           idOrKey: env.ISSUE_KEY,
+  //           comment: "⚠️ Build #${env.BUILD_NUMBER} FAILED: ${env.BUILD_URL}"
+  //         )
+  //       }
+  //     }
+  //   }
+  // }
 }
